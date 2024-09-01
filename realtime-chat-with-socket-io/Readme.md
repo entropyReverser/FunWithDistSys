@@ -4,6 +4,15 @@ This is a simple chat application using Socket.IO, Express, and Node.js. Users c
 
 
 
+
+
+
+https://github.com/user-attachments/assets/ea1d4b38-bb64-4097-b5da-90bcd8d301df
+
+
+
+
+
 ## Usage
 
 1. Start the server:
