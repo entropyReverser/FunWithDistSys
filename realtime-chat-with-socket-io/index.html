@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Socket.IO Chat</title>
+  <style>
+      body {
+        margin: 0;
+        padding-bottom: 3rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+      }
+
+      #form {
+        background: #fff;
+        padding: 0.5rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        height: 3.5rem;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      #input, #channel {
+        border: 1px solid #ddd;
+        padding: 0 1rem;
+        border-radius: 2rem;
+        margin: 0.25rem;
+        font-size: 1rem;
+      }
+
+      #input {
+        flex-grow: 1;
+      }
+
+      #input:focus, #channel:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      #form > button {
+        background: #007bff;
+        border: none;
+        padding: 0 1.5rem;
+        margin: 0.25rem;
+        border-radius: 2rem;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      #form > button:hover {
+        background: #0056b3;
+      }
+
+      #messages {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        padding-bottom: 4rem;
+      }
+
+      #messages > li {
+        padding: 0.75rem 1.5rem;
+        margin: 0.5rem 0;
+        background: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      #messages > li:nth-child(odd) {
+        background: #e9ecef;
+      }
+  </style>
+</head>
+<body>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="channel" placeholder="Channel (default: general)" autocomplete="off" />
+    <input id="input" autocomplete="off" placeholder="Type a message..." /><button>Send</button>
+  </form>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const channelInput = document.getElementById('channel');
+    const messages = document.getElementById('messages');
+
+    let currentChannel = 'general';
+
+    const switchChannel = () => {
+      const channel = channelInput.value || 'general';
+      if (channel !== currentChannel) {
+        currentChannel = channel;
+        messages.innerHTML = ''; // Clear messages when switching channels
+        socket.emit('switch channel', channel);
+      }
+    };
+
+    channelInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        switchChannel();
+      }
+    });
+
+    channelInput.addEventListener('blur', () => {
+      switchChannel();
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const channel = channelInput.value || 'general';
+      if (input.value) {
+        socket.emit('chat message', { channel, message: input.value });
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', (data) => {
+      if (data.channel === currentChannel) {
+        const item = document.createElement('li');
+        item.textContent = `[${data.channel}] ${data.message}`;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+    });
+  </script>
+</body>
+</html>
